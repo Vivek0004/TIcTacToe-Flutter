@@ -19,23 +19,57 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage>
+    with SingleTickerProviderStateMixin {
   String displayExOh = '';
+  double _scale;
+  AnimationController _controller;
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 200),
+      lowerBound: 0.0,
+      upperBound: 0.1,
+    )..addListener(() {
+        setState(() {});
+      });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    _scale = 1 - _controller.value;
     return Scaffold(
-      backgroundColor: Colors.grey[800],
+      backgroundColor: Colors.white,
       body: GridView.builder(
-          itemCount: 9,
-          gridDelegate:
-              SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
-          itemBuilder: (BuildContext context, int index) {
-            return GestureDetector(
-              onTap: _tapped,
+        itemCount: 9,
+        gridDelegate:
+            SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
+        itemBuilder: (BuildContext context, int index) {
+          return GestureDetector(
+            onTap: _tapped,
+            child: Transform.scale(
+              scale: _scale,
               child: Container(
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.grey[700]),
+                  borderRadius: BorderRadius.circular(100),
+                  //boxShadow: ,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFFA7BFE8),
+                      Color(0xFF6190E8),
+                    ],
+                  ),
                 ),
                 child: Center(
                   child: Text(
@@ -44,14 +78,26 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               ),
-            );
-          }),
+            ),
+          );
+        },
+      ),
     );
   }
 
   void _tapped() {
+    _controller.forward();
     setState(() {
-      displayExOh = 'O';
+      if (displayExOh == 'O') {
+        displayExOh = 'X';
+      } else {
+        displayExOh = 'O';
+      }
+    });
+    _controller.addStatusListener((status) {
+      if (_controller.status == AnimationStatus.completed) {
+        _controller.reverse();
+      }
     });
   }
 }
